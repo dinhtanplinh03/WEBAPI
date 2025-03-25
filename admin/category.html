@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Danh mục</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Quản lý Danh mục</h1>
+
+        <!-- Form thêm & cập nhật danh mục -->
+        <form id="categoryForm">
+            <input type="hidden" id="categoryId">
+            <label for="categoryName">Tên danh mục:</label>
+            <input type="text" id="categoryName" required>
+            <button type="submit">Lưu</button>
+        </form>
+
+        <!-- Bảng hiển thị danh sách danh mục -->
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên danh mục</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTableBody">
+                <!-- Danh sách danh mục sẽ được load tại đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadCategories() {
+            const response = await fetch("http://localhost:8080/api/categories");
+            const categories = await response.json();
+
+            const categoryTableBody = document.getElementById("categoryTableBody");
+            categoryTableBody.innerHTML = "";
+            categories.forEach(category => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>
+                        <button onclick="editCategory(${category.id}, '${category.name}')">Sửa</button>
+                        <button onclick="deleteCategory(${category.id})">Xóa</button>
+                    </td>
+                `;
+                categoryTableBody.appendChild(row);
+            });
+        }
+
+        document.getElementById("categoryForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const id = document.getElementById("categoryId").value;
+            const name = document.getElementById("categoryName").value;
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `http://localhost:8080/api/categories/${id}` : "http://localhost:8080/api/categories";
+
+            await fetch(url, {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name })
+            });
+
+            // Sau khi thêm hoặc sửa xong, reset form để không bị hiểu nhầm là cập nhật
+            document.getElementById("categoryForm").reset();
+            document.getElementById("categoryId").value = ""; // ⚠️ Reset id để tránh lỗi sửa tiếp
+
+            loadCategories();
+        });
+
+        function editCategory(id, name) {
+            document.getElementById("categoryId").value = id;
+            document.getElementById("categoryName").value = name;
+        }
+
+        async function deleteCategory(id) {
+            if (confirm("Bạn có chắc muốn xóa danh mục này?")) {
+                await fetch(`http://localhost:8080/api/categories/${id}`, { method: "DELETE" });
+                loadCategories();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadCategories);
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+
+</body>
+
+</html>

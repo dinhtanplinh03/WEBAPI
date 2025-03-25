@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thêm sản phẩm</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Thêm sản phẩm</h1>
+        <form id="productForm" enctype="multipart/form-data">
+            <label for="name">Tên sản phẩm:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="brand">Thương hiệu:</label>
+            <select id="brand" name="brand_id" required></select>
+
+            <label for="category">Danh mục:</label>
+            <select id="category" name="category_id" required></select>
+
+            <label for="price">Giá:</label>
+            <input type="number" id="price" name="price" required>
+
+            <label for="stock">Số lượng:</label>
+            <input type="number" id="stock" name="stock" required>
+
+            <label for="description">Mô tả:</label>
+            <textarea id="description" name="description"></textarea>
+
+            <label for="image">Chọn ảnh:</label>
+            <input type="file" id="image" name="image" required>
+
+            <button type="submit">Thêm sản phẩm</button>
+        </form>
+    </div>
+
+    <script>
+        // Load danh sách Brand & Category từ API
+        async function loadBrandsAndCategories() {
+            try {
+                let brandResponse = await fetch("http://localhost:8080/api/products/brands");
+                let categoryResponse = await fetch("http://localhost:8080/api/products/categories");
+
+                let brands = await brandResponse.json();
+                let categories = await categoryResponse.json();
+
+                let brandSelect = document.getElementById("brand");
+                let categorySelect = document.getElementById("category");
+
+                brands.forEach(brand => {
+                    let option = document.createElement("option");
+                    option.value = brand.id;
+                    option.textContent = brand.name;
+                    brandSelect.appendChild(option);
+                });
+
+                categories.forEach(category => {
+                    let option = document.createElement("option");
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Lỗi khi load Brand và Category:", error);
+            }
+        }
+
+        // Gọi hàm khi trang load
+        document.addEventListener("DOMContentLoaded", loadBrandsAndCategories);
+
+        // Gửi dữ liệu sản phẩm khi submit
+        document.getElementById("productForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            let formData = new FormData(this);
+
+            try {
+                let response = await fetch("http://localhost:8080/api/products/add", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert("Sản phẩm đã được thêm!");
+                    window.location.href = "products.html";
+                } else {
+                    alert("Thêm sản phẩm thất bại!");
+                }
+            } catch (error) {
+                console.error("Lỗi:", error);
+            }
+        });
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đơn hàng</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Quản lý Đơn hàng</h1>
+
+        <!-- Bảng hiển thị danh sách đơn hàng -->
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Người đặt</th>
+                    <th>Ngày đặt</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                <!-- Dữ liệu đơn hàng sẽ được load tại đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadOrders() {
+            try {
+                const response = await fetch("http://localhost:8080/api/orders");
+                if (!response.ok) throw new Error("Lỗi khi tải đơn hàng");
+
+                const orders = await response.json();
+                const orderTableBody = document.getElementById("orderTableBody");
+                orderTableBody.innerHTML = "";
+
+                orders.forEach(order => {
+                    const userName = order.userId ? order.userId.fullName : "Không xác định";
+
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${userName}</td>
+                        <td>${order.createdAt}</td>
+                        <td>${order.totalPrice.toLocaleString()} VND</td>
+                        <td>
+                            <select onchange="updateOrderStatus(${order.id}, this.value)">
+                                <option value="PENDING" ${order.status === "PENDING" ? "selected" : ""}>PENDING</option>
+                                <option value="CONFIRMED" ${order.status === "CONFIRMED" ? "selected" : ""}>CONFIRMED</option>
+                                <option value="SHIPPED" ${order.status === "SHIPPED" ? "selected" : ""}>SHIPPED</option>
+                                <option value="DELIVERED" ${order.status === "DELIVERED" ? "selected" : ""}>DELIVERED</option>
+                                <option value="CANCELED" ${order.status === "CANCELED" ? "selected" : ""}>CANCELED</option>
+                            </select>
+                        </td>
+                    `;
+                    orderTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Lỗi khi tải đơn hàng:", error);
+            }
+        }
+
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                await fetch(`http://localhost:8080/api/orders/${orderId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                alert("Cập nhật trạng thái thành công!");
+                loadOrders();
+            } catch (error) {
+                console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadOrders);
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+</body>
+
+</html>
