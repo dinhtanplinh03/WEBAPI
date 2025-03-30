@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ - Bán Điện Thoại</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <script>
+        // Load header từ header.html
+        fetch("assets/components/header.html")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+            });
+    </script>
+
+    <!-- Banner -->
+    <section class="banner">
+        <img src="assets/img/banner.jpg" alt="Banner quảng cáo">
+    </section>
+
+    <!-- Danh sách sản phẩm -->
+    <section class="products">
+        <h2>Điện thoại nổi bật</h2>
+        <div class="product-list" id="product-list">
+            <!-- Dữ liệu sẽ được load từ API -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Bán Điện Thoại - Mọi quyền được bảo lưu.</p>
+    </footer>
+
+    <script>
+        // 📌 Kết nối API lấy danh sách sản phẩm
+        async function fetchProducts() {
+            try {
+                const response = await fetch("http://localhost:8080/api/products"); // Gọi API backend
+                const products = await response.json();
+
+                // Lấy phần danh sách sản phẩm
+                const productList = document.getElementById("product-list");
+                productList.innerHTML = ""; // Xóa danh sách cũ
+
+                // Duyệt qua từng sản phẩm và hiển thị lên giao diện
+                products.forEach(product => {
+                    const productItem = document.createElement("div");
+                    productItem.classList.add("product");
+                    productItem.innerHTML = `
+                        <img src="http://localhost:8080${product.imageUrl}" alt="${product.name}">
+                        <h3>${product.name}</h3>
+                        <p>Giá: ${product.price.toLocaleString()}đ</p>
+                        <button onclick="viewProduct(${product.id})">Xem chi tiết</button>
+                    `;
+                    productList.appendChild(productItem);
+                });
+            } catch (error) {
+                console.error("Lỗi khi lấy sản phẩm:", error);
+            }
+        }
+
+        // 📌 Chuyển hướng sang trang chi tiết sản phẩm
+        function viewProduct(productId) {
+            window.location.href = `product-detail.html?id=${productId}`;
+        }
+
+        // Gọi API khi trang được tải
+        fetchProducts();
+    </script>
+
+</body>
+
+</html>

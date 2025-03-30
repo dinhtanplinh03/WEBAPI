@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết sản phẩm</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <script>
+        fetch("assets/components/header.html")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+            });
+    </script>
+
+    <!-- Chi tiết sản phẩm -->
+    <section class="product-detail">
+        <div id="product-info">
+            <!-- Dữ liệu sẽ được load từ API -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Bán Điện Thoại - Mọi quyền được bảo lưu.</p>
+    </footer>
+
+    <script>
+        // 📌 Lấy ID sản phẩm từ URL
+        function getProductIdFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("id");
+        }
+
+        // 📌 Kết nối API để lấy chi tiết sản phẩm
+        async function fetchProductDetail() {
+            const productId = getProductIdFromURL();
+            if (!productId) {
+                document.getElementById("product-info").innerHTML = "<p>Không tìm thấy sản phẩm.</p>";
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/products/${productId}`);
+                const product = await response.json();
+
+                // Hiển thị thông tin sản phẩm
+                document.getElementById("product-info").innerHTML = `
+                    <img src="http://localhost:8080${product.imageUrl}" alt="${product.name}">
+                    <h1>${product.name}</h1>
+                    <h3>Giá: ${product.price.toLocaleString()}đ</h3>
+                    <p>${product.description}</p>
+                    <button>Mua ngay</button>
+                `;
+            } catch (error) {
+                console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
+            }
+        }
+
+        // Gọi API khi trang tải
+        fetchProductDetail();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Form đăng ký -->
+    <section class="register">
+        <h2>Đăng ký tài khoản</h2>
+        <form id="register-form">
+            <label for="fullname">Họ và tên:</label>
+            <input type="text" id="fullname" name="fullname" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="confirm-password">Xác nhận mật khẩu:</label>
+            <input type="password" id="confirm-password" name="confirm-password" required>
+
+            <button type="submit">Đăng ký</button>
+
+            <p>Đã có tài khoản? <a href="login.html">Đăng nhập ngay</a></p>
+        </form>
+    </section>
+
+    <script>
+        // Tải header
+        fetch("assets/components/header.html")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+            });
+
+        // Xử lý đăng ký
+        document.getElementById("register-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const fullname = document.getElementById("fullname").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (password !== confirmPassword) {
+                alert("Mật khẩu xác nhận không khớp!");
+                return;
+            }
+
+            // Lưu tài khoản vào LocalStorage
+            let users = JSON.parse(localStorage.getItem("users")) || [];
+            if (users.find(u => u.email === email)) {
+                alert("Email đã được đăng ký!");
+                return;
+            }
+
+            users.push({ fullname, email, password });
+            localStorage.setItem("users", JSON.stringify(users));
+
+            alert("Đăng ký thành công! Vui lòng đăng nhập.");
+            window.location.href = "login.html";
+        });
+    </script>
+
+</body>
+</html>

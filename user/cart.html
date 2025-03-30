@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Giỏ hàng -->
+    <section class="cart">
+        <h2>Giỏ hàng của bạn</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Giá</th>
+                    <th>Số lượng</th>
+                    <th>Thành tiền</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="cart-items">
+                <!-- Sản phẩm trong giỏ hàng sẽ được thêm bằng JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="cart-summary">
+            <h3>Tổng cộng: <span id="total-price">0đ</span></h3>
+            <button onclick="checkout()">Thanh toán</button>
+        </div>
+    </section>
+
+    <script>
+        // Tải header
+        fetch("assets/components/header.html")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+            });
+
+        // Lấy giỏ hàng từ LocalStorage
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+        // Hiển thị giỏ hàng
+        function displayCart() {
+            const cartItems = document.getElementById("cart-items");
+            const totalPrice = document.getElementById("total-price");
+            cartItems.innerHTML = "";
+            let total = 0;
+
+            cart.forEach((item, index) => {
+                let subtotal = item.price * item.quantity;
+                total += subtotal;
+
+                const row = `
+                    <tr>
+                        <td>
+                            <img src="${item.img}" alt="${item.name}" class="cart-img">
+                            ${item.name}
+                        </td>
+                        <td>${item.price.toLocaleString()}đ</td>
+                        <td>
+                            <button onclick="updateQuantity(${index}, -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button onclick="updateQuantity(${index}, 1)">+</button>
+                        </td>
+                        <td>${subtotal.toLocaleString()}đ</td>
+                        <td>
+                            <button onclick="removeFromCart(${index})">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+                cartItems.innerHTML += row;
+            });
+
+            totalPrice.innerText = total.toLocaleString() + "đ";
+        }
+
+        // Cập nhật số lượng sản phẩm
+        function updateQuantity(index, change) {
+            if (cart[index].quantity + change > 0) {
+                cart[index].quantity += change;
+            } else {
+                cart.splice(index, 1);
+            }
+            localStorage.setItem("cart", JSON.stringify(cart));
+            displayCart();
+        }
+
+        // Xóa sản phẩm khỏi giỏ hàng
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            localStorage.setItem("cart", JSON.stringify(cart));
+            displayCart();
+        }
+
+        // Xử lý thanh toán (demo)
+        function checkout() {
+            if (cart.length === 0) {
+                alert("Giỏ hàng trống!");
+                return;
+            }
+            alert("Thanh toán thành công!");
+            localStorage.removeItem("cart");
+            cart = [];
+            displayCart();
+        }
+
+        // Hiển thị giỏ hàng khi trang tải
+        displayCart();
+    </script>
+
+</body>
+</html>
