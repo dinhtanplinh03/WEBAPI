@@ -36,20 +36,22 @@ public class ProductController {
     private CategoryRepository categoryRepository;
 
     // 📌 API lấy sản phẩm theo ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // 📌 API lấy danh sách sản phẩm (có thể lọc theo danh mục)
     @GetMapping
-    public ResponseEntity<List<Product>> getProducts(@RequestParam(required = false) Integer category_id) {
-        List<Product> products = (category_id != null) ?
-                productService.getProductsByCategory(category_id) : productService.getAllProducts();
+    public ResponseEntity<List<Product>> getProducts(
+            @RequestParam(required = false) Integer category_id,
+            @RequestParam(required = false, defaultValue = "false") boolean isAdmin) {
+
+        List<Product> products;
+
+        if (isAdmin) {
+            products = productService.getAllProductsIncludingBlocked(); // ✅ Đảm bảo lấy sản phẩm bị khóa
+        } else {
+            products = productService.getActiveProducts();
+        }
+
         return ResponseEntity.ok(products);
     }
+
 
     // 📌 API Thêm sản phẩm với ảnh
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -188,5 +190,15 @@ public class ProductController {
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
         return "/api/products/uploads/" + fileName; // Trả về đường dẫn ảnh để frontend dùng
+    }
+    @PutMapping("/{id}/toggle-block")
+    public ResponseEntity<Product> toggleBlockProduct(@PathVariable Long id) {
+        Product product = productService.getProductById(id).orElse(null);
+        if (product == null) return ResponseEntity.notFound().build();
+
+        product.setBlocked(!product.getBlocked()); // Đảo trạng thái khóa/mở khóa
+        productService.updateProduct(id, product);
+
+        return ResponseEntity.ok(product);
     }
 }

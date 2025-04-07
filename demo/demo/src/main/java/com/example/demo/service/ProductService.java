@@ -42,6 +42,15 @@ public class ProductService {
     public List<Product> getProductsByCategory(long categoryId) {
         return productRepository.findByCategoryId(categoryId);
     }
+    public List<Product> getActiveProducts() {
+        return productRepository.findByBlockedFalse();
+    }
 
+    public List<Product> getActiveProductsByCategory(Integer categoryId) {
+        return productRepository.findByCategoryIdAndBlockedFalse(categoryId);
+    }
+    public List<Product> getAllProductsIncludingBlocked() {
+        return productRepository.findAll(); // ✅ Đảm bảo lấy toàn bộ sản phẩm
+    }
 }
 
