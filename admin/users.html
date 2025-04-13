@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Người dùng</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Quản lý Người dùng</h1>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên người dùng</th>
+                    <th>Email</th>
+                    <th>Số điện thoại</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th>Bị khóa</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <!-- Dữ liệu người dùng sẽ được load tại đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            try {
+                const response = await fetch("http://localhost:8080/api/users");
+                if (!response.ok) throw new Error("Lỗi khi tải người dùng");
+
+                const users = await response.json();
+                const userTableBody = document.getElementById("userTableBody");
+                userTableBody.innerHTML = "";
+
+                users.forEach(user => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.fullName}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone}</td>
+                        <td>
+                            <select onchange="updateUser(${user.id}, '${user.fullName}', '${user.email}', '${user.phone}', this.value, ${user.blocked})">
+                                <option value="USER" ${user.role === "USER" ? "selected" : ""}>USER</option>
+                                <option value="ADMIN" ${user.role === "ADMIN" ? "selected" : ""}>ADMIN</option>
+                            </select>
+                        </td>
+                        <td>${user.blocked ? "Bị khóa" : "Hoạt động"}</td>
+                        <td>${user.blocked}</td>
+                        <td>
+                            <button onclick="window.location.href='useredit.html?id=${user.id}'">Sửa</button>
+                            <button onclick="toggleBlockUser(${user.id}, ${user.blocked})">${user.blocked ? "Mở khóa" : "Khóa"}</button>
+                        </td>
+                    `;
+                    userTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Lỗi khi tải người dùng:", error);
+            }
+        }
+
+        async function updateUser(userId, fullName, email, phone, newRole, blocked) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ fullName, email, phone, role: newRole, blocked })
+                });
+                if (!response.ok) throw new Error("Lỗi khi cập nhật người dùng");
+                alert("Cập nhật vai trò thành công!");
+                loadUsers();
+            } catch (error) {
+                console.error("Lỗi khi cập nhật vai trò:", error);
+            }
+        }
+
+        async function toggleBlockUser(userId, blocked) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/users/${userId}/block`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ blocked: !blocked })
+                });
+                if (!response.ok) throw new Error("Lỗi khi thay đổi trạng thái người dùng");
+                alert(!blocked ? "Khóa người dùng thành công!" : "Mở khóa người dùng thành công!");
+                loadUsers();
+            } catch (error) {
+                console.error("Lỗi khi thay đổi trạng thái người dùng:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadUsers);
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+</body>
+
+</html>

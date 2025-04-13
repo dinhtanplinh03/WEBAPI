@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách sản phẩm</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1>Danh sách sản phẩm</h1>
+        <a href="productadd.html"><button>Thêm sản phẩm</button></a>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên</th>
+                    <th>Thương hiệu</th>
+                    <th>Danh mục</th>
+                    <th>Giá</th>
+                    <th>Tồn kho</th>
+                    <th>Khóa</th>
+                    <th>Mô tả</th>
+                    <th>Hình ảnh</th>
+                    <th>Ngày tạo</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="product-list"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchProducts() {
+            try {
+                const response = await fetch("http://localhost:8080/api/products");
+                const products = await response.json();
+                const productTable = document.getElementById("product-list");
+
+                productTable.innerHTML = "";
+                products.forEach(product => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${product.brand ? product.brand.name : "Không có"}</td>
+                    <td>${product.category ? product.category.name : "Không có"}</td>
+                    <td>${product.price ? product.price.toLocaleString() + " VND" : "0 VND"}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.blocked ? 'Có' : 'Không'}</td>
+                    <td>${product.description ? product.description : "Không có mô tả"}</td>
+                    <td>
+                        <img src="http://localhost:8080${product.imageUrl}" width="80" height="80">
+                    </td>
+                    <td>${product.createdAt ? new Date(product.createdAt).toLocaleString("vi-VN") : "Không có dữ liệu"}</td>
+                    <td>
+                        <a href="productedit.html?id=${product.id}"><button>Sửa</button></a>
+                        <button onclick="deleteProduct(${product.id})">Xóa</button>
+                    </td>
+                `;
+                    productTable.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách sản phẩm:", error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", fetchProducts);
+
+        async function deleteProduct(id) {
+            if (!confirm("Bạn có chắc muốn xóa sản phẩm này không?")) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/products/${id}`, {
+                    method: "DELETE",
+                });
+
+                if (response.ok) {
+                    alert("Xóa sản phẩm thành công!");
+                    fetchProducts(); // Load lại danh sách sản phẩm
+                } else {
+                    alert("Lỗi khi xóa sản phẩm. Kiểm tra lại backend!");
+                }
+            } catch (error) {
+                console.error("Lỗi khi xóa sản phẩm:", error);
+                alert("Lỗi kết nối đến server!");
+            }
+        }
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+
+
+</body>
+
+</html>

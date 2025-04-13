@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Thương hiệu</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Quản lý Thương hiệu</h1>
+
+        <!-- Form thêm & cập nhật thương hiệu -->
+        <form id="brandForm">
+            <input type="hidden" id="brandId">
+            <label for="brandName">Tên thương hiệu:</label>
+            <input type="text" id="brandName" required>
+            <button type="submit">Lưu</button>
+        </form>
+
+        <!-- Bảng hiển thị danh sách thương hiệu -->
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên thương hiệu</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="brandTableBody">
+                <!-- Danh sách thương hiệu sẽ được load tại đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadBrands() {
+            try {
+                const response = await fetch("http://localhost:8080/api/brands");
+                if (!response.ok) throw new Error("Không thể tải danh sách thương hiệu");
+
+                const brands = await response.json();
+                const brandTableBody = document.getElementById("brandTableBody");
+                brandTableBody.innerHTML = ""; // Xóa dữ liệu cũ
+
+                if (brands.length === 0) {
+                    brandTableBody.innerHTML = "<tr><td colspan='3'>Chưa có thương hiệu nào</td></tr>";
+                    return;
+                }
+
+                brands.forEach(brand => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${brand.id}</td>
+                        <td>${brand.name}</td>
+                        <td>
+                            <button onclick="editBrand(${brand.id}, '${brand.name}')">Sửa</button>
+                            <button onclick="deleteBrand(${brand.id})">Xóa</button>
+                        </td>
+                    `;
+                    brandTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi khi tải danh sách thương hiệu!");
+            }
+        }
+
+        document.getElementById("brandForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const id = document.getElementById("brandId").value;
+            const name = document.getElementById("brandName").value;
+
+            const method = id ? "PUT" : "POST";
+            const url = id ? `http://localhost:8080/api/brands/${id}` : "http://localhost:8080/api/brands";
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: id ? parseInt(id) : null, name })
+                });
+
+                document.getElementById("brandForm").reset;
+                document.getElementById("brandId").value = "";
+
+                if (!response.ok) throw new Error("Lưu thất bại!");
+
+                document.getElementById("brandForm").reset();
+                loadBrands();
+            } catch (error) {
+                console.error(error);
+                alert("Lỗi khi lưu thương hiệu!");
+            }
+        });
+
+        function editBrand(id, name) {
+            document.getElementById("brandId").value = id;
+            document.getElementById("brandName").value = name;
+        }
+
+        async function deleteBrand(id) {
+            if (confirm("Bạn có chắc muốn xóa thương hiệu này?")) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/brands/${id}`, { method: "DELETE" });
+                    if (!response.ok) throw new Error("Xóa thất bại!");
+
+                    loadBrands();
+                } catch (error) {
+                    console.error(error);
+                    alert("Lỗi khi xóa thương hiệu!");
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadBrands);
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+</body>
+
+</html>

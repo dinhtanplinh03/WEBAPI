@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa Người dùng</title>
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul>
+            <li><a href="index.html">Dashboard</a></li>
+            <li><a href="products.html">Quản lý sản phẩm</a></li>
+            <li><a href="category.html">Quản lý danh mục</a></li>
+            <li><a href="brand.html">Quản lý thương hiệu</a></li>
+            <li><a href="orders.html">Quản lý đơn hàng</a></li>
+            <li><a href="users.html">Quản lý người dùng</a></li>
+            <li><a href="#" id="logout">Đăng xuất</a></li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Chỉnh sửa Người dùng</h1>
+        <form id="editUserForm">
+            <input type="hidden" id="userId">
+
+            <label for="fullName">Tên người dùng:</label>
+            <input type="text" id="fullName" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+
+            <label for="phone">Số điện thoại:</label>
+            <input type="text" id="phone" required>
+
+            <label for="role">Vai trò:</label>
+            <select id="role">
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+            </select>
+
+            <label for="password">Mật khẩu:</label>
+            <input type="text" id="password">
+
+            <button type="submit">Cập nhật</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get("id");
+
+            if (userId) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/users/${userId}`);
+                    if (!response.ok) throw new Error("Không thể tải dữ liệu người dùng.");
+
+                    const user = await response.json();
+
+                    document.getElementById("userId").value = user.id;
+                    document.getElementById("fullName").value = user.fullName;
+                    document.getElementById("email").value = user.email;
+                    document.getElementById("phone").value = user.phone;
+                    document.getElementById("role").value = user.role;
+                    document.getElementById("password").value = user.password; // Hiển thị mật khẩu cũ
+                } catch (error) {
+                    console.error("Lỗi khi tải dữ liệu người dùng:", error);
+                    alert("Lỗi khi tải thông tin người dùng!");
+                }
+            }
+        });
+
+        document.getElementById("editUserForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const userId = document.getElementById("userId").value;
+            const fullName = document.getElementById("fullName").value;
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const role = document.getElementById("role").value;
+            const password = document.getElementById("password").value.trim();
+
+            const userData = { fullName, email, phone, role };
+
+            // Nếu người dùng nhập mật khẩu mới, thay đổi mật khẩu
+            if (password !== "") {
+                userData.password = password;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/users/${userId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(userData)
+                });
+
+                if (!response.ok) throw new Error("Cập nhật không thành công!");
+
+                alert("Cập nhật thông tin thành công!");
+                window.location.href = "users.html";
+            } catch (error) {
+                console.error("Lỗi khi cập nhật người dùng:", error);
+                alert("Lỗi khi cập nhật thông tin người dùng!");
+            }
+        });
+
+        //Đăng xuất
+        document.getElementById("logout").addEventListener("click", function () {
+            alert("Đã đăng xuất!");
+            window.location.href = "../login.html";
+        });
+    </script>
+</body>
+
+</html>

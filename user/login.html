@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div id="header-container"></div>
+
+    <!-- Form đăng nhập -->
+    <section class="login">
+        <h2>Đăng nhập</h2>
+        <form id="login-form">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Đăng nhập</button>
+
+            <p>Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a></p>
+        </form>
+    </section>
+
+    <script>
+        // Tải header
+        fetch("assets/components/header.html")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+            });
+
+        // Xử lý đăng nhập
+        document.getElementById("login-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+            
+            // Kiểm tra thông tin đăng nhập (demo)
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                alert("Đăng nhập thành công!");
+                localStorage.setItem("loggedInUser", JSON.stringify(user));
+                window.location.href = "index.html"; // Chuyển hướng về trang chủ
+            } else {
+                alert("Email hoặc mật khẩu không đúng!");
+            }
+        });
+    </script>
+
+</body>
+</html>
